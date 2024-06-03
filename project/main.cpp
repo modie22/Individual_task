@@ -60,7 +60,7 @@ void deleteRecords(const std::string& filePath, const std::vector<int>& indices)
 }
 
 int main() {
-    const std::string filePath = "records.dat"; // Шлях до файлу
+    const std::string filePath = "records.txt"; // Шлях до файлу
 
     // Індекси для читання записів
     std::vector<int> indicesToRead = {1, 3, 5};
