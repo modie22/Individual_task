@@ -22,7 +22,7 @@ int readFile(const string& filename, string records[], int maxSize) {
 void writeFile(const string& filename, string records[], int size) {
     ofstream file(filename);
     for (int i = 0; i < size; ++i) {
-        file << records[i] << std::endl;
+        file << records[i] << endl;
     }
 }
 
@@ -42,7 +42,7 @@ void deleteRecords(string records[], int size, int indices[], int indicesSize) {
     for (int i = 0; i < indicesSize; ++i) {
         int index = indices[i];
         if (index >= 0 && index < size) {
-            records[index] = string(1, '\0'); 
+            records[index] = string(1, '\0');
         }
     }
 }
@@ -50,31 +50,34 @@ void deleteRecords(string records[], int size, int indices[], int indicesSize) {
 int main() {
     string filename = "records.txt";
 
-
+   
     string records[MAX_RECORDS];
 
-  
+   
     int recordCount = readFile(filename, records, MAX_RECORDS);
 
+  
     int readIndices[] = {0, 2};
     int deleteIndices[] = {1};
-    int readIndicesSize = sizeof(readIndices) / sizeof(readIndices[0]);
+ 
+    int readIndicesSize =  sizeof(readIndices) / sizeof(readIndices[0]);
     int deleteIndicesSize = sizeof(deleteIndices) / sizeof(deleteIndices[0]);
 
  
     string readRecords[MAX_RECORDS];
     int readRecordsSize;
 
+   
     getRecords(records, recordCount, readIndices, readIndicesSize, readRecords, readRecordsSize);
-        cout << "Read Records:" << std::endl;
+        cout << "Read Records:" << endl;
     for (int i = 0; i < readRecordsSize; ++i) {
-        cout << readRecords[i] << std::endl;
+        cout << readRecords[i] << endl;
     }
 
-
+    
     deleteRecords(records, recordCount, deleteIndices, deleteIndicesSize);
 
-
+   
     writeFile(filename, records, recordCount);
 
     return 0;
