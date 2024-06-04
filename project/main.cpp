@@ -1,32 +1,33 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <sstream>
 
-const int MAX_RECORDS = 1000;
-const int MAX_LENGTH = 100;  
+using namespace std;
+
+const int MAX_RECORDS = 1000; 
+const int MAX_LENGTH = 100;   
 
 
-int readFile(const std::string& filename, std::string records[], int maxSize) {
-    std::ifstream file(filename);
+int readFile(const string& filename, string records[], int maxSize) {
+    ifstream file(filename);
     int count = 0;
-    std::string line;
-    while (count < maxSize && std::getline(file, line)) {
+    string line;
+    while (count < maxSize && getline(file, line)) {
         records[count++] = line;
     }
     return count;
 }
 
 
-void writeFile(const std::string& filename, std::string records[], int size) {
-    std::ofstream file(filename);
+void writeFile(const string& filename, string records[], int size) {
+    ofstream file(filename);
     for (int i = 0; i < size; ++i) {
         file << records[i] << std::endl;
     }
 }
 
 
-void getRecords(std::string records[], int size, int indices[], int indicesSize, std::string result[], int& resultSize) {
+void getRecords(string records[], int size, int indices[], int indicesSize, string result[], int& resultSize) {
     resultSize = 0;
     for (int i = 0; i < indicesSize; ++i) {
         int index = indices[i];
@@ -37,24 +38,23 @@ void getRecords(std::string records[], int size, int indices[], int indicesSize,
 }
 
 
-void deleteRecords(std::string records[], int size, int indices[], int indicesSize) {
+void deleteRecords(string records[], int size, int indices[], int indicesSize) {
     for (int i = 0; i < indicesSize; ++i) {
         int index = indices[i];
         if (index >= 0 && index < size) {
-            records[index] = std::string(1, '\0'); 
+            records[index] = string(1, '\0'); 
         }
     }
 }
 
 int main() {
-    std::string filename = "records.txt";
+    string filename = "records.txt";
+
+
+    string records[MAX_RECORDS];
 
   
-    std::string records[MAX_RECORDS];
-
-
     int recordCount = readFile(filename, records, MAX_RECORDS);
-
 
     int readIndices[] = {0, 2};
     int deleteIndices[] = {1};
@@ -62,15 +62,15 @@ int main() {
     int deleteIndicesSize = sizeof(deleteIndices) / sizeof(deleteIndices[0]);
 
  
-    std::string readRecords[MAX_RECORDS];
+    string readRecords[MAX_RECORDS];
     int readRecordsSize;
 
- 
     getRecords(records, recordCount, readIndices, readIndicesSize, readRecords, readRecordsSize);
-    std::cout << "Read Records:" << std::endl;
+        cout << "Read Records:" << std::endl;
     for (int i = 0; i < readRecordsSize; ++i) {
-        std::cout << readRecords[i] << std::endl;
+        cout << readRecords[i] << std::endl;
     }
+
 
     deleteRecords(records, recordCount, deleteIndices, deleteIndicesSize);
 
