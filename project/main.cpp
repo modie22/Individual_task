@@ -1,78 +1,82 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <cstring>
+#include <string>
+#include <sstream>
 
-// Розмір одного запису в байтах
-const int RECORD_SIZE = 20;
+const int MAX_RECORDS = 1000; // Максимальна кількість записів у файлі
+const int MAX_LENGTH = 100;   // Максимальна довжина кожного запису
 
-// Розмір поля індексу в байтах
-const int INDEX_SIZE = 4;
-
-// Структура для зберігання запису
-struct Record {
-    int index; // Індекс запису
-    char data[RECORD_SIZE - INDEX_SIZE]; // Дані запису
-
-    // Конструктор, який ініціалізує запис нулями
-    Record() {
-        std::memset(this, 0, sizeof(Record));
+// Функція для читання записів з файлу
+int readFile(const std::string& filename, std::string records[], int maxSize) {
+    std::ifstream file(filename);
+    int count = 0;
+    std::string line;
+    while (count < maxSize && std::getline(file, line)) {
+        records[count++] = line;
     }
-};
-
-// Функція для читання записів із файлу за заданими індексами
-void readRecords(const std::string& filePath, const std::vector<int>& indices) {
-    std::ifstream file(filePath, std::ios::binary); // Відкрити файл для читання в двійковому режимі
-    if (!file.is_open()) {
-        std::cerr << "Не вдалося відкрити файл для читання" << std::endl;
-        return;
-    }
-
-    for (int index : indices) {
-        file.seekg(index * RECORD_SIZE, std::ios::beg); // Перейти до потрібного запису
-        Record record;
-        file.read(reinterpret_cast<char*>(&record), RECORD_SIZE); // Прочитати запис із файлу
-        if (record.index == index) {
-            std::cout << "Індекс: " << record.index << ", Дані: " << record.data << std::endl;
-        } else {
-            std::cout << "Запис з індексом " << index << " не знайдено." << std::endl;
-        }
-    }
-
-    file.close(); // Закрити файл
+    return count;
 }
 
-// Функція для видалення записів із файлу за заданими індексами
-void deleteRecords(const std::string& filePath, const std::vector<int>& indices) {
-    std::fstream file(filePath, std::ios::in | std::ios::out | std::ios::binary); // Відкрити файл для читання і запису в двійковому режимі
-    if (!file.is_open()) {
-        std::cerr << "Не вдалося відкрити файл для запису" << std::endl;
-        return;
+// Функція для запису записів до файлу
+void writeFile(const std::string& filename, std::string records[], int size) {
+    std::ofstream file(filename);
+    for (int i = 0; i < size; ++i) {
+        file << records[i] << std::endl;
     }
+}
 
-    for (int index : indices) {
-        file.seekp(index * RECORD_SIZE, std::ios::beg); // Перейти до потрібного запису
-        Record zeroedRecord; // Створити нульовий запис
-        file.write(reinterpret_cast<char*>(&zeroedRecord), RECORD_SIZE); // Записати нульовий запис у файл
+// Функція для отримання записів із заданими індексами
+void getRecords(std::string records[], int size, int indices[], int indicesSize, std::string result[], int& resultSize) {
+    resultSize = 0;
+    for (int i = 0; i < indicesSize; ++i) {
+        int index = indices[i];
+        if (index >= 0 && index < size && !records[index].empty() && records[index][0] != '\0') {
+            result[resultSize++] = records[index];
+        }
     }
+}
 
-    file.close(); // Закрити файл
+// Функція для видалення записів із заданими індексами
+void deleteRecords(std::string records[], int size, int indices[], int indicesSize) {
+    for (int i = 0; i < indicesSize; ++i) {
+        int index = indices[i];
+        if (index >= 0 && index < size) {
+            records[index] = std::string(1, '\0'); // Замінити запис на символ з кодом 0
+        }
+    }
 }
 
 int main() {
-    const std::string filePath = "records.txt"; // Шлях до файлу
+    std::string filename = "records.txt";
 
-    // Індекси для читання записів
-    std::vector<int> indicesToRead = {1, 3, 5};
+    // Масив для зберігання записів
+    std::string records[MAX_RECORDS];
 
-    // Індекси для видалення записів
-    std::vector<int> indicesToDelete = {2, 4};
+    // Прочитати всі записи з файлу
+    int recordCount = readFile(filename, records, MAX_RECORDS);
 
-    std::cout << "Читання записів:" << std::endl;
-    readRecords(filePath, indicesToRead); // Виклик функції для читання записів
+    // Задані індекси для читання та видалення
+    int readIndices[] = {0, 2};
+    int deleteIndices[] = {1};
+    int readIndicesSize = sizeof(readIndices) / sizeof(readIndices[0]);
+    int deleteIndicesSize = sizeof(deleteIndices) / sizeof(deleteIndices[0]);
 
-    std::cout << "\nВидалення записів:" << std::endl;
-    deleteRecords(filePath, indicesToDelete); // Виклик функції для видалення записів
+    // Масив для зберігання прочитаних записів
+    std::string readRecords[MAX_RECORDS];
+    int readRecordsSize;
+
+    // Читання записів з заданими індексами
+    getRecords(records, recordCount, readIndices, readIndicesSize, readRecords, readRecordsSize);
+    std::cout << "Read Records:" << std::endl;
+    for (int i = 0; i < readRecordsSize; ++i) {
+        std::cout << readRecords[i] << std::endl;
+    }
+
+    // Вилучення записів з заданими індексами
+    deleteRecords(records, recordCount, deleteIndices, deleteIndicesSize);
+
+    // Записати оновлені записи назад до файлу
+    writeFile(filename, records, recordCount);
 
     return 0;
 }
