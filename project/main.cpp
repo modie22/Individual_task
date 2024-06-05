@@ -1,84 +1,59 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <string>
-
-using namespace std;
-
-const int MAX_RECORDS = 1000; 
-const int MAX_LENGTH = 100;   
+#include <cstring>
 
 
-int readFile(const string& filename, string records[], int maxSize) {
-    ifstream file(filename);
-    int count = 0;
-    string line;
-    while (count < maxSize && getline(file, line)) {
-        records[count++] = line;
-    }
-    return count;
+struct Record {
+    int index;
+    char data[20]; 
+};
+
+
+Record readRecord(std::fstream &file, int recordSize, int index) {
+    Record record;
+    file.seekg(index * recordSize, std::ios::beg);
+    file.read(reinterpret_cast<char*>(&record), recordSize);
+    return record;
 }
 
 
-void writeFile(const string& filename, string records[], int size) {
-    ofstream file(filename);
-    for (int i = 0; i < size; ++i) {
-        file << records[i] << endl;
-    }
-}
-
-
-void getRecords(string records[], int size, int indices[], int indicesSize, string result[], int& resultSize) {
-    resultSize = 0;
-    for (int i = 0; i < indicesSize; ++i) {
-        int index = indices[i];
-        if (index >= 0 && index < size && !records[index].empty() && records[index][0] != '\0') {
-            result[resultSize++] = records[index];
-        }
-    }
-}
-
-
-void deleteRecords(string records[], int size, int indices[], int indicesSize) {
-    for (int i = 0; i < indicesSize; ++i) {
-        int index = indices[i];
-        if (index >= 0 && index < size) {
-            records[index] = string(1, '\0');
-        }
-    }
+void deleteRecord(std::fstream &file, int recordSize, int index) {
+    Record emptyRecord = {0, {0}}; 
+    file.seekp(index * recordSize, std::ios::beg);
+    file.write(reinterpret_cast<const char*>(&emptyRecord), recordSize);
 }
 
 int main() {
-    string filename = "records.txt";
+    const std::string filename = "records.dat";
+    const int recordSize = sizeof(Record);
 
    
-    string records[MAX_RECORDS];
-
-   
-    int recordCount = readFile(filename, records, MAX_RECORDS);
-
-  
-    int readIndices[] = {0, 2};
-    int deleteIndices[] = {1};
- 
-    int readIndicesSize =  sizeof(readIndices) / sizeof(readIndices[0]);
-    int deleteIndicesSize = sizeof(deleteIndices) / sizeof(deleteIndices[0]);
-
- 
-    string readRecords[MAX_RECORDS];
-    int readRecordsSize;
-
-   
-    getRecords(records, recordCount, readIndices, readIndicesSize, readRecords, readRecordsSize);
-        cout << "Read Records:" << endl;
-    for (int i = 0; i < readRecordsSize; ++i) {
-        cout << readRecords[i] << endl;
+    std::fstream file(filename, std::ios::in | std::ios::out | std::ios::binary);
+    if (!file) {
+        std::cerr << "Cannot open the file!" << std::endl;
+        return 1;
     }
 
-    
-    deleteRecords(records, recordCount, deleteIndices, deleteIndicesSize);
 
-   
-    writeFile(filename, records, recordCount);
+    std::vector<int> indicesToRead = {1, 3, 5};
+    for (int index : indicesToRead) {
+        Record record = readRecord(file, recordSize, index);
+        if (record.index != 0) { 
+            std::cout << "Index: " << record.index << ", Data: " << record.data << std::endl;
+        } else {
+            std::cout << "No record at index: " << index << std::endl;
+        }
+    }
 
+
+    std::vector<int> indicesToDelete = {2, 4}; 
+    for (int index : indicesToDelete) {
+        deleteRecord(file, recordSize, index);
+        std::cout << "Record at index " << index << " deleted." << std::endl;
+    }
+
+    file.close();
     return 0;
 }
